@@ -1,0 +1,108 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+enum Role {
+  CITIZEN
+  ENUMERATOR
+  ADMIN
+}
+
+enum Status {
+  PENDING
+  COMPLETED
+  VERIFIED
+}
+
+enum ScheduleStatus {
+  UPCOMING
+  ACTIVE_PHASE_1
+  ACTIVE_PHASE_2
+  COMPLETED
+}
+
+enum Gender {
+  MALE
+  FEMALE
+  OTHER
+}
+
+enum AIVerdict {
+  TRUE
+  FALSE
+  PARTIALLY_TRUE
+}
+
+model User {
+  id           String      @id @default(uuid())
+  mobileNumber String      @unique
+  aadhaarHash  String
+  role         Role        @default(CITIZEN)
+  createdAt    DateTime    @default(now())
+  households   Household[]
+}
+
+model Household {
+  id           String    @id @default(uuid())
+  censusId     String    @unique
+  userId       String?
+  user         User?     @relation(fields: [userId], references: [id])
+  state        String
+  district     String
+  address      String
+  houseType    String    // Pucca, Semi-Pucca, Kutcha
+  amenities    Json      // Water supply, electricity, LPG, sanitation
+  assets       Json      // Vehicle, internet, TV, computer
+  phase1Status Status    @default(COMPLETED)
+  createdAt    DateTime  @default(now())
+  members      Member[]
+
+  @@index([state])
+  @@index([censusId])
+}
+
+model Member {
+  id              String    @id @default(uuid())
+  householdId     String
+  household       Household @relation(fields: [householdId], references: [id], onDelete: Cascade)
+  fullName        String
+  age             Int
+  gender          Gender
+  maritalStatus   String
+  motherTongue    String
+  literacyLevel   String
+  occupation      String
+  migrationReason String?
+  phase2Status    Status    @default(COMPLETED)
+
+  @@index([householdId])
+}
+
+model StateSchedule {
+  id              String         @id @default(uuid())
+  stateCode       String         @unique
+  stateName       String
+  phase1StartDate DateTime
+  phase1EndDate   DateTime
+  phase2StartDate DateTime
+  phase2EndDate   DateTime
+  currentStatus   ScheduleStatus @default(UPCOMING)
+}
+
+model MisinformationClaim {
+  id          String    @id @default(uuid())
+  claimText   String
+  aiVerdict   AIVerdict
+  explanation String
+  language    String    @default("en")
+  verifiedAt  DateTime  @default(now())
+}
