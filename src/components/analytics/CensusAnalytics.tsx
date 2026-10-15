@@ -1,13 +1,12 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
 import { GlassCard } from "../ui/GlassCard";
 import { Badge } from "../ui/Badge";
 import {
   POPULATION_GROWTH_DATA,
   URBAN_RURAL_SPLIT,
-  AGE_DISTRIBUTION_2027,
   STATE_LITERACY_TOP_BOTTOM,
   DIGITAL_AMENITIES_PENETRATION,
 } from "@/lib/data/analyticsData";
@@ -31,15 +30,35 @@ import {
   TrendingUp,
   PieChart as PieIcon,
   GraduationCap,
-  Sparkles,
   Zap,
-  Users,
-  Info,
+  Sliders,
+  Sparkles,
+  Calculator,
+  ArrowUpRight,
 } from "lucide-react";
 
 export const CensusAnalytics: React.FC = () => {
   const { t } = useLanguage();
-  const [selectedChart, setSelectedChart] = useState<"pop" | "urban" | "literacy" | "amenities">("pop");
+  const [selectedChart, setSelectedChart] = useState<"pop" | "urban" | "literacy" | "amenities" | "modeler">("pop");
+
+  // Interactive Scenario Projection Modeler Levers
+  const [targetUrbanRate, setTargetUrbanRate] = useState<number>(36.6);
+  const [femaleLiteracyTarget, setFemaleLiteracyTarget] = useState<number>(82.5);
+
+  const scenarioCalculation = useMemo(() => {
+    const totalPop = 1445.0; // Millions
+    const urbanPop = (totalPop * (targetUrbanRate / 100)).toFixed(1);
+    const ruralPop = (totalPop * (1 - targetUrbanRate / 100)).toFixed(1);
+    const projectedWorkforce = (totalPop * 0.48 * (1 + (femaleLiteracyTarget - 70) * 0.004)).toFixed(1);
+    const economicDividend = ((femaleLiteracyTarget - 70) * 1.8).toFixed(1);
+
+    return {
+      urbanPop,
+      ruralPop,
+      projectedWorkforce,
+      economicDividend,
+    };
+  }, [targetUrbanRate, femaleLiteracyTarget]);
 
   const customTooltipStyle = {
     backgroundColor: "#0F1419",
@@ -51,11 +70,11 @@ export const CensusAnalytics: React.FC = () => {
   };
 
   return (
-    <section id="analytics" className="py-16 scroll-mt-24 space-y-10">
+    <section id="analytics" className="py-16 scroll-mt-24 space-y-10" aria-label="Census Data Analytics & Projections">
       {/* Header */}
       <div className="text-center max-w-3xl mx-auto space-y-3">
         <Badge variant="saffron" size="lg">
-          <BarChart3 className="w-4 h-4" /> Data Intelligence Suite
+          <BarChart3 className="w-4 h-4" aria-hidden="true" /> Data Intelligence & Scenario Suite
         </Badge>
         <h2 className="text-3xl sm:text-4xl font-extrabold font-display text-sand-50 tracking-tight">
           {t("analyticsTitle")}
@@ -65,17 +84,20 @@ export const CensusAnalytics: React.FC = () => {
         </p>
 
         {/* View Switcher Pills */}
-        <div className="flex flex-wrap items-center justify-center gap-2 pt-2">
+        <div className="flex flex-wrap items-center justify-center gap-2 pt-2" role="tablist" aria-label="Demographic Chart Views">
           {[
             { id: "pop", label: "Population & Sex Ratio", icon: <TrendingUp className="w-3.5 h-3.5" /> },
             { id: "urban", label: "Urban vs Rural Split", icon: <PieIcon className="w-3.5 h-3.5" /> },
             { id: "literacy", label: "State Literacy Rates", icon: <GraduationCap className="w-3.5 h-3.5" /> },
             { id: "amenities", label: "Amenities Transformation", icon: <Zap className="w-3.5 h-3.5" /> },
+            { id: "modeler", label: "⚡ Live 2027 Scenario Modeler", icon: <Sliders className="w-3.5 h-3.5" /> },
           ].map((tab) => (
             <button
               key={tab.id}
+              role="tab"
+              aria-selected={selectedChart === tab.id}
               onClick={() => setSelectedChart(tab.id as any)}
-              className={`px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all ${
+              className={`px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-saffron-500 ${
                 selectedChart === tab.id
                   ? "bg-gradient-to-r from-saffron-600 to-emerald-600 text-sand-50 shadow-glow-saffron"
                   : "bg-obsidian-800/80 text-sage-400 hover:text-sand-100 border border-slate-800"
@@ -226,10 +248,6 @@ export const CensusAnalytics: React.FC = () => {
                     Approx. 128M urban households across 8,000+ statutory and census towns.
                   </p>
                 </div>
-
-                <div className="p-3 rounded-xl bg-obsidian-900 border border-slate-800 text-[11px] text-sage-400">
-                  ℹ️ Urban population has increased from <strong>31.2% (2011)</strong> to an estimated <strong>36.6% (2027)</strong> driven by economic migration and industrial corridors.
-                </div>
               </div>
             </div>
           </div>
@@ -302,6 +320,106 @@ export const CensusAnalytics: React.FC = () => {
                   <Bar dataKey="2027" name="2027 Projection (%)" fill="#FF5722" radius={[4, 4, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
+            </div>
+          </div>
+        )}
+
+        {/* 5. Live 2027 Scenario Modeler */}
+        {selectedChart === "modeler" && (
+          <div className="space-y-6 animate-in fade-in">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-800 pb-4">
+              <div className="space-y-1">
+                <h3 className="text-lg font-bold font-display text-sand-50 flex items-center gap-2">
+                  <Calculator className="w-5 h-5 text-saffron-400" />
+                  Interactive Demographic Scenario Modeler (2027–2031)
+                </h3>
+                <p className="text-xs text-sage-400">
+                  Adjust urbanization and female education levers to simulate macroeconomic & demographic outcomes in real time.
+                </p>
+              </div>
+              <Badge variant="glow" size="sm">
+                Real-Time Compute
+              </Badge>
+            </div>
+
+            {/* Slider Controls */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-5 rounded-2xl bg-obsidian-900 border border-slate-800">
+              <div className="space-y-2">
+                <div className="flex justify-between text-xs font-semibold">
+                  <span className="text-sand-200">Urbanization Target Rate</span>
+                  <span className="text-saffron-400 font-mono font-bold">{targetUrbanRate}%</span>
+                </div>
+                <input
+                  type="range"
+                  min={30}
+                  max={50}
+                  step={0.5}
+                  value={targetUrbanRate}
+                  onChange={(e) => setTargetUrbanRate(Number(e.target.value))}
+                  className="w-full h-2 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-saffron-500"
+                />
+                <div className="flex justify-between text-[10px] text-sage-500">
+                  <span>30% (Rural Heavy)</span>
+                  <span>36.6% (2027 Baseline)</span>
+                  <span>50% (Rapid Urban)</span>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <div className="flex justify-between text-xs font-semibold">
+                  <span className="text-sand-200">Female Literacy Projection</span>
+                  <span className="text-emerald-400 font-mono font-bold">{femaleLiteracyTarget}%</span>
+                </div>
+                <input
+                  type="range"
+                  min={70}
+                  max={95}
+                  step={0.5}
+                  value={femaleLiteracyTarget}
+                  onChange={(e) => setFemaleLiteracyTarget(Number(e.target.value))}
+                  className="w-full h-2 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-emerald-500"
+                />
+                <div className="flex justify-between text-[10px] text-sage-500">
+                  <span>70% (2011 Baseline)</span>
+                  <span>82.5% (2027 Target)</span>
+                  <span>95% (Universal)</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Simulated Live Outputs */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+              <div className="p-4 rounded-xl bg-saffron-500/10 border border-saffron-500/30 text-center space-y-1">
+                <span className="text-[11px] text-sage-400">Urban Population</span>
+                <p className="text-2xl font-bold font-display text-saffron-300 font-mono">
+                  {scenarioCalculation.urbanPop} M
+                </p>
+                <span className="text-[10px] text-saffron-400">at {targetUrbanRate}% urban share</span>
+              </div>
+
+              <div className="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-center space-y-1">
+                <span className="text-[11px] text-sage-400">Rural Population</span>
+                <p className="text-2xl font-bold font-display text-emerald-300 font-mono">
+                  {scenarioCalculation.ruralPop} M
+                </p>
+                <span className="text-[10px] text-emerald-400">across 6.5L villages</span>
+              </div>
+
+              <div className="p-4 rounded-xl bg-obsidian-900 border border-slate-800 text-center space-y-1">
+                <span className="text-[11px] text-sage-400">Effective Workforce</span>
+                <p className="text-2xl font-bold font-display text-sand-50 font-mono">
+                  {scenarioCalculation.projectedWorkforce} M
+                </p>
+                <span className="text-[10px] text-emerald-400">Active Working Force</span>
+              </div>
+
+              <div className="p-4 rounded-xl bg-obsidian-900 border border-slate-800 text-center space-y-1">
+                <span className="text-[11px] text-sage-400">Demographic Dividend</span>
+                <p className="text-2xl font-bold font-display text-amber-300 font-mono flex items-center justify-center gap-1">
+                  +{scenarioCalculation.economicDividend}% <ArrowUpRight className="w-4 h-4 text-emerald-400" />
+                </p>
+                <span className="text-[10px] text-sage-400">Productivity Boost</span>
+              </div>
             </div>
           </div>
         )}

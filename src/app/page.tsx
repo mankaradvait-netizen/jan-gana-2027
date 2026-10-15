@@ -1,28 +1,54 @@
 "use client";
 
 import React from "react";
+import dynamic from "next/dynamic";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
 import { Badge } from "@/components/ui/Badge";
 import { StatCard } from "@/components/ui/StatCard";
 import { PhaseBreakdown } from "@/components/phases/PhaseBreakdown";
 import { StateScheduleTracker } from "@/components/schedules/StateScheduleTracker";
-import { EnumerationWizard } from "@/components/simulator/EnumerationWizard";
 import { PrivacyHub } from "@/components/privacy/PrivacyHub";
-import { CensusAnalytics } from "@/components/analytics/CensusAnalytics";
 import {
   Sparkles,
   Users,
   ShieldCheck,
   Globe2,
   Calendar,
-  Layers,
   ArrowRight,
-  CheckCircle2,
   Lock,
   Zap,
-  Building,
-  HeartHandshake,
 } from "lucide-react";
+
+// Dynamic Code Splitting for Heavy Interactive Modules (Boosts Efficiency & Initial LCP Score)
+const EnumerationWizard = dynamic(
+  () => import("@/components/simulator/EnumerationWizard").then((mod) => mod.EnumerationWizard),
+  {
+    loading: () => (
+      <div className="py-16 text-center">
+        <div className="w-12 h-12 rounded-xl bg-saffron-500/20 text-saffron-400 mx-auto animate-pulse flex items-center justify-center">
+          <Sparkles className="w-6 h-6" />
+        </div>
+        <p className="text-xs text-sage-400 mt-3">Loading Self-Enumeration Engine...</p>
+      </div>
+    ),
+    ssr: false,
+  }
+);
+
+const CensusAnalytics = dynamic(
+  () => import("@/components/analytics/CensusAnalytics").then((mod) => mod.CensusAnalytics),
+  {
+    loading: () => (
+      <div className="py-16 text-center">
+        <div className="w-12 h-12 rounded-xl bg-emerald-500/20 text-emerald-400 mx-auto animate-pulse flex items-center justify-center">
+          <Zap className="w-6 h-6" />
+        </div>
+        <p className="text-xs text-sage-400 mt-3">Loading Demographic Intelligence Suite...</p>
+      </div>
+    ),
+    ssr: false,
+  }
+);
 
 export default function HomePage() {
   const { t } = useLanguage();
@@ -39,7 +65,7 @@ export default function HomePage() {
         {/* ========================================================================= */}
         {/* 1. HERO SECTION */}
         {/* ========================================================================= */}
-        <section className="text-center space-y-8 pt-6 pb-8">
+        <section className="text-center space-y-8 pt-6 pb-8" aria-label="Introduction">
           {/* Top Pill */}
           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-obsidian-850 border border-saffron-500/40 text-xs font-semibold text-saffron-300 shadow-glow-saffron">
             <span className="flex h-2 w-2 relative">
@@ -67,26 +93,26 @@ export default function HomePage() {
           <div className="flex flex-wrap items-center justify-center gap-4 pt-2">
             <a
               href="#simulator"
-              className="px-8 py-4 rounded-2xl bg-gradient-to-r from-saffron-600 via-saffron-500 to-saffron-600 hover:from-saffron-500 hover:to-saffron-400 text-sand-50 font-bold text-sm sm:text-base shadow-glow-saffron transition-all hover:scale-105 active:scale-95 flex items-center gap-2.5"
+              className="px-8 py-4 rounded-2xl bg-gradient-to-r from-saffron-600 via-saffron-500 to-saffron-600 hover:from-saffron-500 hover:to-saffron-400 text-sand-50 font-bold text-sm sm:text-base shadow-glow-saffron transition-all hover:scale-105 active:scale-95 flex items-center gap-2.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-saffron-400"
             >
-              <Sparkles className="w-5 h-5" />
+              <Sparkles className="w-5 h-5" aria-hidden="true" />
               <span>Begin Self-Enumeration Simulator</span>
-              <ArrowRight className="w-4 h-4" />
+              <ArrowRight className="w-4 h-4" aria-hidden="true" />
             </a>
 
             <a
               href="#schedules"
-              className="px-7 py-4 rounded-2xl bg-obsidian-800/90 hover:bg-slate-800 text-sand-100 font-bold text-sm sm:text-base border border-slate-700 hover:border-emerald-500/50 transition-all flex items-center gap-2"
+              className="px-7 py-4 rounded-2xl bg-obsidian-800/90 hover:bg-slate-800 text-sand-100 font-bold text-sm sm:text-base border border-slate-700 hover:border-emerald-500/50 transition-all flex items-center gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400"
             >
-              <Calendar className="w-5 h-5 text-emerald-400" />
+              <Calendar className="w-5 h-5 text-emerald-400" aria-hidden="true" />
               <span>State Schedules (36 States & UTs)</span>
             </a>
 
             <a
               href="#privacy"
-              className="px-6 py-4 rounded-2xl bg-obsidian-800/90 hover:bg-slate-800 text-sand-100 font-bold text-sm sm:text-base border border-slate-700 hover:border-saffron-500/50 transition-all flex items-center gap-2"
+              className="px-6 py-4 rounded-2xl bg-obsidian-800/90 hover:bg-slate-800 text-sand-100 font-bold text-sm sm:text-base border border-slate-700 hover:border-saffron-500/50 transition-all flex items-center gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-saffron-400"
             >
-              <ShieldCheck className="w-5 h-5 text-saffron-400" />
+              <ShieldCheck className="w-5 h-5 text-saffron-400" aria-hidden="true" />
               <span>AI Fact-Checker</span>
             </a>
           </div>
@@ -136,7 +162,7 @@ export default function HomePage() {
         <StateScheduleTracker />
 
         {/* ========================================================================= */}
-        {/* 4. GUIDED SELF-ENUMERATION SIMULATOR */}
+        {/* 4. GUIDED SELF-ENUMERATION SIMULATOR (Dynamically Loaded for Max Speed) */}
         {/* ========================================================================= */}
         <EnumerationWizard />
 
